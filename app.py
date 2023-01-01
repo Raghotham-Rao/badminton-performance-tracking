@@ -13,6 +13,8 @@ gsheet = None
 if os.environ["STREAMLIT_APP_MODE"] == "test":
     with open(os.environ['CONFIG_FILE_PATH']) as f:
         gsheet = Gsheet(json.load(f))
+else:
+    gsheet = Gsheet(st.secrets['gsheet_configs'])
 
 df = gsheet.get_sheet_data("badminton_tracking", "Form Responses 1").drop(["Timestamp", "result"], axis=1)
 df.columns = ["date", "team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2", "points_team_1", "points_team_2", "venue"]
