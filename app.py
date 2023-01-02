@@ -31,54 +31,59 @@ df['point_bins'] = pd.cut(
     labels=['< 30', '30 - 35', '35 - 40', '40 - 45', "> 45"]
 )
 
+def get_player_stats(player, df):
+    player_matches = df[
+        np.where(
+            np.logical_or.reduce([df[i] == player for i in ["team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2"]]),
+            True,
+            False
+        )
+    ].copy()
+    
+    player_matches["belongs_to"] = np.where(
+        np.logical_or(
+            *[player_matches[i] == player for i in ["team_1_player_1", "team_1_player_2"]]
+        ),
+        'team_1',
+        'team_2'
+    )
+    
+    player_matches['player_team_points'] = np.where(
+        player_matches["belongs_to"] == 'team_1',
+        player_matches["points_team_1"],
+        player_matches["points_team_2"]
+    )
+    
+    player_matches['result'] = np.where(player_matches.belongs_to == player_matches.winner, "win", "loss")
+    player_matches['is_win'] = np.where(player_matches.result == "win", 1, 0)
+    
+    return player_matches
+
 
 st.title("Badminton Tracking")
 
-st.markdown(f"<h3>Total Games Played: {df.shape[0]}</h3><hr>", unsafe_allow_html=True)
+st.markdown(f"<h3>Total Games Played: {df.shape[0]}</h3>", unsafe_allow_html=True)
 
-st.markdown("<h5>Venue Wise stats</h5>", unsafe_allow_html=True)
-venue_cols = st.columns(2)
+st.markdown("<hr><h5>Leaderboard</h5>", unsafe_allow_html=True)
 
-venue_cols[0].plotly_chart(
-    px.bar(
-        df.groupby(["point_bins", "venue"]).agg(**{
-            "total_games": pd.NamedAgg("date", "count")
-        }).reset_index(),
-        x="venue",
-        y="total_games",
-        color="point_bins",
-        template="plotly_white",
-        color_discrete_sequence=px.colors.sequential.Viridis_r,
-        title="Total Games played at different venues"
-    )
-)
+leaderboard_cols = st.columns(2)
 
-venue_pie_fig = px.pie(
-    df.groupby(["venue"]).agg(**{
-        "total_games": pd.NamedAgg("date", "count")
-    }).reset_index(),
-    values="total_games",
-    names="venue",
-    color_discrete_sequence=px.colors.sequential.Viridis_r,
-    hole=0.4,
-    title="Venue Most Visited"
-)
-venue_pie_fig.update_traces(
-    textposition='inside'
-)
+leaderboard = []
+all_players = list(np.unique(df[["team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2"]].values))
 
-venue_cols[1].plotly_chart(
-    venue_pie_fig
-)
-
-venue_cols[0].markdown("<h6>Overall Venue stats</h6>", unsafe_allow_html=True)
-venue_cols[0].table(
-    df.groupby("venue").agg(**{
-        "total_games": pd.NamedAgg("date", "count"), 
-        "average_ppg": pd.NamedAgg("total_points_per_game", "mean"),
-        **{f"{fn}_margin": pd.NamedAgg("margin", fn) for fn in ["mean", "max", "min"]}
+for player in all_players:
+    player_stats = get_player_stats(player, df)
+    
+    total_games, wins = player_stats.shape[0], player_stats['is_win'].sum()
+    leaderboard.append({
+        "player": player,
+        "total_games": total_games,
+        "wins": wins,
+        "wins_pct": round(wins * 100 / total_games, 2),
+        "form": ' '.join(player_stats['result'][-5:].apply(lambda x: x[0].upper()).to_list())
     })
-)
+
+leaderboard_cols[0].table(pd.DataFrame(leaderboard).set_index("player").sort_values("wins_pct", ascending=False))
 
 st.markdown("<hr>", unsafe_allow_html=True)
 
@@ -103,7 +108,7 @@ st.markdown("<hr>", unsafe_allow_html=True)
 
 ### Player Section
 st.markdown("<h5>Individual stats</h5>", unsafe_allow_html=True)
-all_players = list(np.unique(df[["team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2"]].values))
+
 player = st.columns(4)[0].selectbox(label="Player Name", options=all_players)
 
 player_matches = df[
@@ -210,7 +215,7 @@ player_partner_cols[1].plotly_chart(
 ### Player Daily stats
 
 st.markdown("<hr>", unsafe_allow_html=True)
-st.markdown("<h6>Player - Partner stats</h6>", unsafe_allow_html=True)
+st.markdown("<h6>Player - Date wise stats</h6>", unsafe_allow_html=True)
 
 daily_stat_cols = st.columns(2)
 daily_performance = player_matches.groupby(["date", "result"]).agg(**{
@@ -247,6 +252,49 @@ daily_stat_cols[1].plotly_chart(
     daily_performance_bar_chart
 )
 
+st.markdown("<hr><h5>Venue Wise stats</h5>", unsafe_allow_html=True)
+venue_cols = st.columns(2)
+
+venue_cols[0].plotly_chart(
+    px.bar(
+        df.groupby(["point_bins", "venue"]).agg(**{
+            "total_games": pd.NamedAgg("date", "count")
+        }).reset_index(),
+        x="venue",
+        y="total_games",
+        color="point_bins",
+        template="plotly_white",
+        color_discrete_sequence=px.colors.sequential.Viridis_r,
+        title="Total Games played at different venues"
+    )
+)
+
+venue_pie_fig = px.pie(
+    df.groupby(["venue"]).agg(**{
+        "total_games": pd.NamedAgg("date", "count")
+    }).reset_index(),
+    values="total_games",
+    names="venue",
+    color_discrete_sequence=px.colors.sequential.Viridis_r,
+    hole=0.4,
+    title="Venue Most Visited"
+)
+venue_pie_fig.update_traces(
+    textposition='inside'
+)
+
+venue_cols[1].plotly_chart(
+    venue_pie_fig
+)
+
+venue_cols[0].markdown("<hr><h6>Overall Venue stats</h6>", unsafe_allow_html=True)
+venue_cols[0].table(
+    df.groupby("venue").agg(**{
+        "total_games": pd.NamedAgg("date", "count"), 
+        "average_ppg": pd.NamedAgg("total_points_per_game", "mean"),
+        **{f"{fn}_margin": pd.NamedAgg("margin", fn) for fn in ["mean", "max", "min"]}
+    })
+)
 
 st.markdown("<hr><h5>Entire Data</h5>", unsafe_allow_html=True)
 st.dataframe(df)
