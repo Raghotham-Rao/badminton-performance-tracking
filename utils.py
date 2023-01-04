@@ -45,13 +45,15 @@ def get_gsheet():
 
 def get_data():
     gsheet = get_gsheet()
-    df = gsheet.get_sheet_data("badminton_tracking", "Form Responses 1").drop(["Timestamp", "result"], axis=1)
+    df = gsheet.get_sheet_data("badminton_tracking", "Form Responses 1").drop(["result"], axis=1)
 
-    df.columns = ["date", "team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2", "points_team_1", "points_team_2", "venue"]
+    df.columns = ["timestamp", "date", "team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2", "points_team_1", "points_team_2", "venue"]
 
     df['winner'] = np.where(df.points_team_1 > df.points_team_2, 'team_1', 'team_2')
     df['margin'] = abs(df.points_team_1 - df.points_team_2)
     df['total_points_per_game'] = df["points_team_1"] + df["points_team_2"]
+    df['date'] = pd.to_datetime(df['date']).dt.strftime("%Y-%m-%d")
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
 
     df = df.applymap(lambda x: f'{x}'.lower().strip() if isinstance(x, str) else x)
     df['point_bins'] = pd.cut(
@@ -61,7 +63,7 @@ def get_data():
         labels=['< 30', '30 - 35', '35 - 40', '40 - 45', "> 45"]
     )
 
-    return df
+    return df.sort_values("timestamp")
 
 def create_go_table_figure(df):
     go_table = go.Table(

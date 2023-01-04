@@ -20,7 +20,7 @@ def display_leaderboard(df, players_list):
             "total_games": total_games,
             "wins": wins,
             "wins_pct": round(wins * 100 / total_games, 2),
-            "form": ' '.join(player_stats['result'][-5:].apply(lambda x: x[0].upper()).to_list())
+            "form": ' '.join(player_stats.iloc[-5:, :]['result'].apply(lambda x: x[0].upper()).to_list())[::-1]
         })
 
     leaderboard_df = pd.DataFrame(leaderboard).sort_values("wins_pct", ascending=False)
