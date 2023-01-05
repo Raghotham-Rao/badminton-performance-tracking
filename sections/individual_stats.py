@@ -22,7 +22,7 @@ def display_player_win_loss_stats(player_matches: pd.DataFrame):
         color_discrete_map={"win":'#b5de2b', "loss":'lightslategrey'},
         hole=0.3
     )
-    win_loss_pie.update_layout(width=300, showlegend=False, margin=dict(l=50, b=0, t=0))
+    win_loss_pie.update_layout(width=250, showlegend=False, margin=dict(l=80, b=100, t=0))
     player_win_loss_columns[2].plotly_chart(
         win_loss_pie
     )
@@ -109,8 +109,8 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
         template="simple_white",
         color_discrete_sequence=['#b5de2b', 'lightslategrey'],
         title=f"{player}'s Daily Performance",
-        height=300,
-        width=400
+        width=800,
+        height=400
     )
 
     daily_stat_cols[0].markdown('<h6 style="margin-top: 40px">Daily Stats:</h6>', unsafe_allow_html=True)
@@ -125,12 +125,13 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
 
     daily_performance_table_fig = utils.create_go_table_figure(daily_performance_res_ignored)
     daily_performance_table_fig.update_traces(columnwidth=[2, 2, 2, 2, 3])
+    daily_performance_table_fig.update_layout(margin=dict(b=0))
 
 
     daily_stat_cols[0].plotly_chart(
         daily_performance_table_fig
     )
 
-    daily_stat_cols[1].plotly_chart(
+    st.plotly_chart(
         daily_performance_bar_chart
     )
