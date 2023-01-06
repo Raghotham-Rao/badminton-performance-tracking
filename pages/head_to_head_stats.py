@@ -93,11 +93,11 @@ if len(set(team_1 + team_2)) == 4:
     head_2_head_stats["team_1_min_points_in_game"] = head_2_head_df["player_team_points"].min()
     head_2_head_stats["team_2_min_points_in_game"] = head_2_head_df["other_team_points"].min()
 
-    head_2_head_stats["team_1_largest_win"] = get_game_result_string(head_2_head_df.iloc[head_2_head_df[head_2_head_df["is_win"] == 1]["margin"].idxmax(), :].to_dict())
-    head_2_head_stats["team_2_largest_win"] = get_game_result_string(head_2_head_df.iloc[head_2_head_df[head_2_head_df["is_win"] == 0]["margin"].idxmax(), :].to_dict())
+    head_2_head_stats["team_1_largest_win"] = np.nan if head_2_head_stats["team_1_wins"] == 0 else get_game_result_string(head_2_head_df.iloc[head_2_head_df[head_2_head_df["is_win"] == 1]["margin"].idxmax(), :].to_dict())
+    head_2_head_stats["team_2_largest_win"] = np.nan if head_2_head_stats["team_2_wins"] == 0 else get_game_result_string(head_2_head_df.iloc[head_2_head_df[head_2_head_df["is_win"] == 0]["margin"].idxmax(), :].to_dict())
 
-    head_2_head_stats["team_1_games_won_after_deuce"] = head_2_head_df[(head_2_head_df["total_points_per_game"] > 40) & (head_2_head_df["is_win"] == 1)].shape[0]
-    head_2_head_stats["team_2_games_won_after_deuce"] = head_2_head_df[(head_2_head_df["total_points_per_game"] > 40) & (head_2_head_df["is_win"] == 0)].shape[0]
+    head_2_head_stats["team_1_games_won_after_deuce"] = np.nan if head_2_head_stats["team_1_wins"] == 0 else head_2_head_df[(head_2_head_df["total_points_per_game"] > 40) & (head_2_head_df["is_win"] == 1)].shape[0]
+    head_2_head_stats["team_2_games_won_after_deuce"] = np.nan if head_2_head_stats["team_2_wins"] == 0 else head_2_head_df[(head_2_head_df["total_points_per_game"] > 40) & (head_2_head_df["is_win"] == 0)].shape[0]
 
     comparision_table_list = [
         ["Wins", "Average points per game", "Average Win Margin", "Minimum Points in a Game", "Games Won post Deuce", "Largest Win"],
