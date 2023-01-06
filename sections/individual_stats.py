@@ -22,7 +22,7 @@ def display_player_win_loss_stats(player_matches: pd.DataFrame):
         color_discrete_map={"win":'#b5de2b', "loss":'lightslategrey'},
         hole=0.3
     )
-    win_loss_pie.update_layout(width=250, showlegend=False, margin=dict(l=80, b=100, t=0))
+    win_loss_pie.update_layout(width=250, showlegend=False, margin=dict(l=80, b=120, t=0))
     player_win_loss_columns[2].plotly_chart(
         win_loss_pie
     )
@@ -37,7 +37,7 @@ def display_player_win_loss_stats(player_matches: pd.DataFrame):
     # player_win_loss_columns[1].table(player_win_loss_df.T)
 
 def display_player_partner_stats(player_matches: pd.DataFrame, player):
-    player_partner_cols = st.columns([2, 1])
+    player_partner_cols = st.columns([3, 2])
 
     player_matches['partner'] = np.where(
         player_matches["belongs_to"] == 'team_1',
@@ -73,6 +73,8 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
     bar_colors = ['lightslategrey' for i in range(player_partner_stats.shape[0])]
     bar_colors[partner_list.index(player_partner_stats['win_pct'].idxmax())] = '#b5de2b'
 
+    player_partner_cols[1].markdown('<h6 style="margin-top: 40px">&emsp;&emsp;Partnerwise Win Percentages:</h6>', unsafe_allow_html=True)
+
     partner_bar_chart = go.Figure(
         go.Bar(
             y=player_partner_stats.index,
@@ -84,11 +86,12 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
     )
     partner_bar_chart.update_layout(
         plot_bgcolor="white",
-        title_text="Partnerwise win percentages",
-        width=300
+        width=300,
+        margin=dict(b=0, l=100, t=0),
+        height=player_partner_stats.shape[0] * 50
     )
 
-    player_partner_cols[1].plotly_chart(
+    player_partner_cols[-1].plotly_chart(
         partner_bar_chart
     )
 
@@ -125,7 +128,7 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
 
     daily_performance_table_fig = utils.create_go_table_figure(daily_performance_res_ignored)
     daily_performance_table_fig.update_traces(columnwidth=[2, 2, 2, 2, 3])
-    daily_performance_table_fig.update_layout(margin=dict(b=0))
+    daily_performance_table_fig.update_layout(margin=dict(b=0), height=200)
 
 
     daily_stat_cols[0].plotly_chart(
@@ -134,4 +137,18 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
 
     st.plotly_chart(
         daily_performance_bar_chart
+    )
+
+    daily_win_pct = go.Scatter(
+        x=daily_performance_res_ignored["date"],
+        y=daily_performance_res_ignored["win_pct"],
+        line_color="#b5de2b",
+        fill="tozeroy"
+    )
+
+    daily_win_pct_fig = go.Figure(daily_win_pct)
+    daily_win_pct_fig.update_layout(plot_bgcolor="#f9f9ff", title="Daily win percentages")
+
+    st.plotly_chart(
+        daily_win_pct_fig
     )
