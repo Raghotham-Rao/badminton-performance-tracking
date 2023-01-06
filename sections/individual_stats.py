@@ -64,7 +64,7 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
     player_partner_cols[0].markdown('<h6 style="margin-top: 40px">Partnerwise Stats:</h6>', unsafe_allow_html=True)
     player_partner_table_fig = utils.create_go_table_figure(player_partner_stats.reset_index())
     player_partner_table_fig.update_traces(columnwidth=[1, 1, 1, 1, 2], cells_fill_color=[np.where(player_partner_stats['win_pct'] == player_partner_stats['win_pct'].max(), '#b5de2b', '#eceff1')])
-    player_partner_table_fig.update_layout(margin=dict(t=0,b=0))
+    player_partner_table_fig.update_layout(margin=dict(t=0,b=0), height=500)
 
     player_partner_cols[0].plotly_chart(player_partner_table_fig)
     # player_partner_cols[0].table(player_partner_stats)
