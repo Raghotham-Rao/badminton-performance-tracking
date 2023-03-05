@@ -42,6 +42,13 @@ def get_gsheet():
             return Gsheet(json.load(f))
     else:
         return Gsheet(st.secrets['gsheet_configs'])
+    
+def add_expense_data(expense_data):
+    get_gsheet().add_expense("badminton_tracking", "expense_tracker", expense_data)
+
+def get_expenses_data():
+    gsheet = get_gsheet()
+    return gsheet.get_sheet_data("badminton_tracking", "expense_tracker")
 
 def get_data():
     gsheet = get_gsheet()

@@ -13,7 +13,7 @@ def display_date_section(df):
     })
     date_df["average_ppg"] = round(date_df["average_ppg"], 2)
 
-    date_stats_fig = utils.create_go_table_figure(date_df.reset_index())
+    date_stats_fig = utils.create_go_table_figure(date_df.reset_index().sort_values('date', ascending=False))
     date_stats_fig.update_layout(width=450, margin=dict(b=0))
 
     date_cols[0].plotly_chart(date_stats_fig)
