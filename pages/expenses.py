@@ -35,4 +35,3 @@ with cols[1]:
         add_new_expense = st.form_submit_button("Add")
         if add_new_expense:
             utils.add_expense_data([f'{game_date}', amount, paid_by])
-            df = utils.get_expenses_data()

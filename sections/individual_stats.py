@@ -97,7 +97,7 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
 
 def display_player_daily_stats(player_matches: pd.DataFrame, player):
     daily_stat_cols = st.columns([4, 2])
-    daily_performance = player_matches.groupby(["date", "result"]).agg(**{
+    daily_performance = player_matches.sort_values('date', ascending=False).groupby(["date", "result"]).agg(**{
         "total_games": pd.NamedAgg("result", "count"), 
         "average_ppg": pd.NamedAgg("player_team_points", "mean"),
         **{f"{fn}_margin": pd.NamedAgg("margin", fn) for fn in ["mean", "max", "min"]}
@@ -110,7 +110,7 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
         color='result',
         barmode="group",
         template="simple_white",
-        color_discrete_sequence=['#b5de2b', 'lightslategrey'],
+        color_discrete_map={"win":'#b5de2b', "loss":'lightslategrey'},
         title=f"{player}'s Daily Performance",
         width=800,
         height=400
