@@ -24,6 +24,7 @@ def display_leaderboard(df, players_list):
         })
 
     leaderboard_df = pd.DataFrame(leaderboard).sort_values("wins_pct", ascending=False)
+    leaderboard_df = leaderboard_df[leaderboard_df['total_games'] > 25]
     leaderboard_df = leaderboard_df[leaderboard_df['player'] != 'other']
     leader_board_fig = utils.create_go_table_figure(leaderboard_df.head(10))
     leader_board_fig.update_traces(cells_fill_color=[np.where(leaderboard_df['wins_pct'] == leaderboard_df['wins_pct'].max(), '#b5de2b', '#eceff1')])

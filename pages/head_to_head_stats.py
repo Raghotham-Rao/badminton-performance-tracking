@@ -67,8 +67,8 @@ if len(set(team_1 + team_2)) == 4:
             "team_1_wins": head_2_head_df["is_win"].sum(),
             "average_ppg": head_2_head_df["total_points_per_game"].mean(),
             "average_margin_of_victory": head_2_head_df["margin"].mean(),
-            "avg_team1_pts": head_2_head_df["player_team_points"].mean(),
-            "avg_team2_pts": head_2_head_df["other_team_points"].mean(),
+            "avg_team1_pts": round(head_2_head_df["player_team_points"].mean(), 2),
+            "avg_team2_pts": round(head_2_head_df["other_team_points"].mean(), 2),
             "longest_game": get_game_result_string(longest_game)
         }
 

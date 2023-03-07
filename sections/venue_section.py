@@ -1,6 +1,8 @@
 import streamlit as st
 import plotly.express as px
 import pandas as pd
+import utils
+import numpy as np
 
 def display_venue_stats(df: pd.DataFrame):
 
@@ -45,11 +47,16 @@ def display_venue_stats(df: pd.DataFrame):
         venue_pie_fig
     )
 
-    st.markdown("<h6>Overall Venue stats</h6>", unsafe_allow_html=True)
-    st.columns([3, 1])[0].table(
-        df.groupby("venue").agg(**{
+    st.markdown("<h6 style='margin-top:50px'>Overall Venue stats</h6>", unsafe_allow_html=True)
+
+    with st.columns([3, 1])[0]:
+        venue_stats_df = df.groupby("venue").agg(**{
             "total_games": pd.NamedAgg("date", "count"), 
             "average_ppg": pd.NamedAgg("total_points_per_game", "mean"),
             **{f"{fn}_margin": pd.NamedAgg("margin", fn) for fn in ["mean", "max", "min"]}
-        })
-    )
+        }).reset_index().round(decimals=2)
+
+        venue_stats_fig = utils.create_go_table_figure(venue_stats_df)
+        venue_stats_fig.update_traces(cells_fill_color=[np.where(venue_stats_df['total_games'] == venue_stats_df['total_games'].max(), '#b5de2b', '#eceff1')])
+
+        st.plotly_chart(venue_stats_fig)

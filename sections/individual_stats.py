@@ -11,7 +11,7 @@ def display_player_win_loss_stats(player_matches: pd.DataFrame):
         "total_games": pd.NamedAgg("result", "count"), 
         "average_ppg": pd.NamedAgg("player_team_points", "mean"),
         **{f"{fn}_margin": pd.NamedAgg("margin", fn) for fn in ["mean", "max", "min"]}
-    })
+    }).round(decimals=2)
 
     win_loss_pie = px.pie(
         player_win_loss_df,
@@ -97,7 +97,7 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
 
 def display_player_daily_stats(player_matches: pd.DataFrame, player):
     daily_stat_cols = st.columns([4, 2])
-    daily_performance = player_matches.sort_values('date', ascending=False).groupby(["date", "result"]).agg(**{
+    daily_performance = player_matches.groupby(["date", "result"]).agg(**{
         "total_games": pd.NamedAgg("result", "count"), 
         "average_ppg": pd.NamedAgg("player_team_points", "mean"),
         **{f"{fn}_margin": pd.NamedAgg("margin", fn) for fn in ["mean", "max", "min"]}
@@ -126,7 +126,7 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
     daily_performance_res_ignored['win_pct'] = round(daily_performance_res_ignored['wins'] * 100 / daily_performance_res_ignored['total_games'], 2)
     daily_performance_res_ignored["average_ppg"] = round(daily_performance_res_ignored["average_ppg"], 2)
 
-    daily_performance_table_fig = utils.create_go_table_figure(daily_performance_res_ignored)
+    daily_performance_table_fig = utils.create_go_table_figure(daily_performance_res_ignored.sort_values('date', ascending=False))
     daily_performance_table_fig.update_traces(columnwidth=[2, 2, 2, 2, 3])
     daily_performance_table_fig.update_layout(margin=dict(b=0), height=200)
 
