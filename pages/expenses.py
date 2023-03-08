@@ -65,7 +65,7 @@ def get_balances(player_share_df):
     balances = balances[['players_x', 'paid_by_x', 'owes', 'date_x']]
     balances.columns = ['player', 'owes_to', 'amount', 'for_days']
 
-    balances = balances[balances['amount'] > 0]
+    balances = balances[balances['amount'] > 0].round(decimals=2)
 
     return balances
 
