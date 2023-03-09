@@ -159,7 +159,7 @@ else:
             color_discrete_sequence=px.colors.sequential.OrRd_r[-venue_wise_expenditure.shape[0]:],
             title="Venue wise cost",
             hole=0.3,
-            width=200,
+            width=350,
         )
         venue_costs_pie.update_layout(showlegend=False, margin=dict(l=40))
         st.plotly_chart(venue_costs_pie)
@@ -205,7 +205,7 @@ else:
                 title=curr_month_expense["date"],
                 delta={"reference": curr_month_expense["prev_month_expense"]}
             )
-        ).update_traces(gauge_bar_color="#8bc34a").update_layout(width=300, margin=dict(l=40, b=50, t=0))
+        ).update_traces(gauge_bar_color="#8bc34a").update_layout(width=300, margin=dict(l=80, b=50, t=0))
 
         st.plotly_chart(metric_fig)
 
