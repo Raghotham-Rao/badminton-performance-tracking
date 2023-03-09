@@ -150,7 +150,7 @@ else:
     ).groupby('venue').sum('amount').reset_index()
 
 
-    with cost_analysis_cols[0]:
+    with cost_analysis_cols[2]:
         venue_costs_pie = px.pie(
             venue_wise_expenditure,
             values="amount",
@@ -161,7 +161,7 @@ else:
             hole=0.3,
             width=200,
         )
-        venue_costs_pie.update_layout(showlegend=False, margin=dict(r=0))
+        venue_costs_pie.update_layout(showlegend=False, margin=dict(l=40))
         st.plotly_chart(venue_costs_pie)
 
     with cost_analysis_cols[1]:
@@ -188,13 +188,13 @@ else:
             )
         )
 
-        monthly_expenditure_fig.update_layout(width=300, title="Monthy Expenditure")
+        monthly_expenditure_fig.update_layout(width=300, title="Monthy Expenditure", margin=dict(l=40))
 
         st.plotly_chart(
             monthly_expenditure_fig
         )
 
-    with cost_analysis_cols[2]:
+    with cost_analysis_cols[0]:
         monthly_expenditure['prev_month_expense'] = monthly_expenditure['amount'].shift(-1)
         curr_month_expense = monthly_expenditure.reset_index().iloc[0, :].to_dict()
 
@@ -205,7 +205,7 @@ else:
                 title=curr_month_expense["date"],
                 delta={"reference": curr_month_expense["prev_month_expense"]}
             )
-        ).update_traces(gauge_bar_color="#8bc34a").update_layout(width=300, margin=dict(l=120, b=50, t=0))
+        ).update_traces(gauge_bar_color="#8bc34a").update_layout(width=300, margin=dict(l=40, b=50, t=0))
 
         st.plotly_chart(metric_fig)
 
