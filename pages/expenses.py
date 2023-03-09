@@ -28,7 +28,7 @@ def get_players_on_date(df):
     })
 
     players_on_date['players'] = players_on_date[['team_1_player_1', 'team_1_player_2', 'team_2_player_1', 'team_2_player_2']].apply(
-        lambda x: list(set(', '.join([', '.join(x[i]) for i in range(4)]).split(', '))), 
+        lambda x: [i for i in set(', '.join([', '.join(x[i]) for i in range(4)]).split(', ')) if i != 'other'], 
         axis=1
     )
     players_on_date = players_on_date[['players']]
