@@ -20,3 +20,12 @@ class Gsheet:
         except:
             worksheet = workbook.add_worksheet(worksheet_name, 1000, 20)
         worksheet.append_row(expense_details)
+
+    def add_settlement(self, workbook_name, worksheet_name, expense_details):
+        workbook = self.service_account.open(workbook_name)
+        worksheet = None
+        try:
+            worksheet = workbook.worksheet(worksheet_name)
+        except:
+            worksheet = workbook.add_worksheet(worksheet_name, 1000, 20)
+        worksheet.append_row(expense_details)
