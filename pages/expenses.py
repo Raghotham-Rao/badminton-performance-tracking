@@ -8,9 +8,9 @@ import media.icon_constants as icons
 from datetime import datetime
 
 def text_color(amount):
-    if amount < 50:
+    if amount < 300:
         return "#4caf50"
-    elif amount < 100:
+    elif amount < 600:
         return "#ff9800"
     else:
         return "tomato"
@@ -98,7 +98,7 @@ if expenses_tracked and expenses_df.empty:
     st.subheader("No Expenses Tracked Yet")
 else:
     st.markdown(f"<hr><h5>{icons.CALENDAR}&nbsp;Daily Expenses</h5>", unsafe_allow_html=True)
-    expenses_fig = utils.create_go_table_figure(expenses_df)
+    expenses_fig = utils.create_go_table_figure(expenses_df.sort_values('date'))
     expenses_fig.update_traces(cells_fill_color=[np.where(expenses_df['amount'] == expenses_df['amount'].max(), '#b5de2b', '#eceff1')])
     expenses_fig.update_layout(margin=dict(t=0, b=0), width=350, height=225)
     st.plotly_chart(expenses_fig)
