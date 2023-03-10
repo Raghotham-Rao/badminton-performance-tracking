@@ -109,7 +109,7 @@ st.markdown(f"<h1>{icons.EXPENSE_TRACKER}&nbsp; Expense Tracker</h1>", unsafe_al
 expenses_tracked = True
 try:
     expenses_df = utils.get_expenses_data().sort_values('date')
-    settlements_df = utils.get_settlements_data()
+    settlements_df = utils.get_settlements_data().groupby(['paid_by', 'paid_to']).sum('amount').reset_index()
 except:
     expenses_tracked = False
 
