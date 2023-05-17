@@ -36,11 +36,16 @@ def get_players_on_date(df):
 
     return players_on_date
 
-def get_balances(player_share_df, settlements_df):
+def get_balances(player_share_df, settlements_df, shuttle_expenses):
     balances = player_share_df.groupby(['players', 'paid_by'][::-1]).agg({
         'date': 'count',
         'share': 'sum'
     }).reset_index()
+
+    transformed_shuttle_expenses = shuttle_expenses[['paid_by', 'covered_for', 'expense_id', 'share']]
+    transformed_shuttle_expenses.columns = ['paid_by', 'players', 'date', 'share']
+
+    balances = pd.concat([balances, transformed_shuttle_expenses]).groupby(["paid_by", "players"]).agg({"share": "sum", "date": "min"}).reset_index()
 
     balances = balances[balances['paid_by'] != balances['players']]
 
@@ -91,6 +96,12 @@ def get_balances(player_share_df, settlements_df):
 df = utils.get_data()
 all_players = list(np.unique(df[["team_1_player_1", "team_1_player_2", "team_2_player_1", "team_2_player_2"]].values))
 all_players.remove("other")
+shuttle_expenses = utils.get_shuttle_expenses_data()
+shuttle_expenses['covered_for'] = shuttle_expenses['shared_by'].str.split(', ')
+shuttle_expenses['share'] = shuttle_expenses['amount'] / shuttle_expenses['covered_for'].apply(len)
+
+shuttle_expenses = shuttle_expenses.explode('covered_for')[['expense_id', 'record_date', 'paid_by', 'amount', 'share', 'covered_for', 'comments']]
+shuttle_expenses = shuttle_expenses[shuttle_expenses['paid_by'] != shuttle_expenses['covered_for']]
 
 with st.sidebar:
     with st.form("add_expense", clear_on_submit=True):
@@ -117,7 +128,7 @@ if expenses_tracked and expenses_df.empty:
     st.subheader("No Expenses Tracked Yet")
 else:
     st.markdown(f"<hr><h5>{icons.CALENDAR}&nbsp;Daily Expenses</h5>", unsafe_allow_html=True)
-    expenses_fig = utils.create_go_table_figure(expenses_df)
+    expenses_fig = utils.create_go_table_figure(expenses_df.sort_values("date", ascending=False))
     expenses_fig.update_traces(cells_fill_color=[np.where(expenses_df['amount'] == expenses_df['amount'].max(), '#b5de2b', '#eceff1')])
     expenses_fig.update_layout(margin=dict(t=0, b=0), width=350, height=225)
     st.plotly_chart(expenses_fig)
@@ -127,7 +138,7 @@ else:
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(f"<h5>{icons.CALCULATOR}&nbsp;Balances</h5>", unsafe_allow_html=True)
-    balances = get_balances(player_share_df, settlements_df)
+    balances = get_balances(player_share_df, settlements_df, shuttle_expenses)
     balances_dict = balances[balances['amount'] > 0].to_dict(orient='records')
 
     for balance in balances_dict:
@@ -209,11 +220,11 @@ else:
 
         st.plotly_chart(metric_fig)
 
+    st.markdown("---")
 
-    st.markdown(f"<hr><h5>{icons.SETTLEMENTS}&nbsp;Track Settlements</h5>", unsafe_allow_html=True)
-
-    settlement_cols = st.columns([1, 2])
+    settlement_cols = st.columns([3, 1, 3])
     with settlement_cols[0]:
+        st.markdown(f"<h5>{icons.SETTLEMENTS}&nbsp;Track Settlements</h5>", unsafe_allow_html=True)
         with st.form("add_settlement", clear_on_submit=True):
             st.markdown(f"<h6>Add Settlement</hh>", unsafe_allow_html=True)
             paid_by = st.selectbox("paid_by", options=all_players)
@@ -222,3 +233,17 @@ else:
             add_new_settlement = st.form_submit_button("Add")
             if add_new_settlement:
                 utils.add_settlement_data([f'{datetime.now().date()}', paid_by, paid_to, amount])
+
+
+    with settlement_cols[2]:
+        st.markdown(f"<h5>{icons.SETTLEMENTS}&nbsp;Shuttle Expenses</h5>", unsafe_allow_html=True)
+        with st.form("shuttle_expenses"):#, clear_on_submit=True):
+            st.markdown(f"<h6>Add Shuttle Expense</hh>", unsafe_allow_html=True)
+            shuttle_paid_by = st.selectbox("paid_by", options=all_players)
+            shared_by = st.multiselect("shared by", options=all_players)
+            shuttle_amount = st.number_input("amount")
+            comments = st.text_input("comments")
+            shuttle_expense_add = st.form_submit_button("Add")
+            if shuttle_expense_add:
+                utils.add_shuttle_expense_data([f'{datetime.now().date()}', shuttle_paid_by, shuttle_amount, ', '.join(shared_by), comments])
+                # utils.add_settlement_data([f'{datetime.now().date()}', paid_by, paid_to, amount])

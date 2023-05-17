@@ -46,12 +46,26 @@ def get_gsheet():
 def add_expense_data(expense_data):
     get_gsheet().add_expense("badminton_tracking", "expense_tracker", expense_data)
 
+def add_shuttle_expense_data(data:list):
+    gsheet = get_gsheet()
+    expense_id = 0
+    try:
+        expense_id = gsheet.get_sheet_data("badminton_tracking", "shuttle_expense_tracker")['expense_id'].to_list()[-1] + 1
+    except:
+        expense_id = 1
+    data.insert(0, expense_id)
+    get_gsheet().add_expense("badminton_tracking", "shuttle_expense_tracker", data)
+
 def add_settlement_data(settlement_data):
     get_gsheet().add_expense("badminton_tracking", "settlements", settlement_data)
 
 def get_expenses_data():
     gsheet = get_gsheet()
     return gsheet.get_sheet_data("badminton_tracking", "expense_tracker")
+
+def get_shuttle_expenses_data():
+    gsheet = get_gsheet()
+    return gsheet.get_sheet_data("badminton_tracking", "shuttle_expense_tracker")
 
 def get_settlements_data():
     gsheet = get_gsheet()
