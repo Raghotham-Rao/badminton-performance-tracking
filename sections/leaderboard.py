@@ -3,11 +3,12 @@ import plotly.express as px
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+from st_aggrid import AgGrid, GridOptionsBuilder, GridUpdateMode, AgGridTheme, JsCode
 import utils
 
 
 def display_leaderboard(df, players_list):
-    leaderboard_cols = st.columns([2, 1])
+    leaderboard_cols = st.columns([8, 3])
 
     leaderboard = []
 
@@ -26,7 +27,23 @@ def display_leaderboard(df, players_list):
     leaderboard_df = pd.DataFrame(leaderboard).sort_values("wins_pct", ascending=False)
     leaderboard_df = leaderboard_df[leaderboard_df['total_games'] > 25]
     leaderboard_df = leaderboard_df[leaderboard_df['player'] != 'other']
-    leader_board_fig = utils.create_go_table_figure(leaderboard_df.head(10))
-    leader_board_fig.update_traces(cells_fill_color=[np.where(leaderboard_df['wins_pct'] == leaderboard_df['wins_pct'].max(), '#b5de2b', '#eceff1')])
-    leader_board_fig.update_layout(margin=dict(t=0))
-    leaderboard_cols[0].plotly_chart(leader_board_fig)
+    leaderboard_df['player'] = leaderboard_df['player'].str.capitalize()
+    leader = leaderboard_df.sort_values('wins_pct', ascending=False).iloc[0, 0]
+
+    builder = GridOptionsBuilder.from_dataframe(leaderboard_df)
+
+    builder.configure_columns(leaderboard_df.columns, width=140)
+    builder.configure_column('player', width=140)
+    builder.configure_column('total_games', width=180)
+
+    grid_options = builder.build()
+    grid_options['getRowStyle'] = utils.get_js_code_for_row_color('player', leader)
+
+    with leaderboard_cols[0]:
+        leader_board = AgGrid(
+            leaderboard_df, 
+            gridOptions=grid_options, 
+            theme=AgGridTheme.MATERIAL, 
+            allow_unsafe_jscode=True,
+            custom_css=utils.AGGRID_TABLE_STYLES
+        )

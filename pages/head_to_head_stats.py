@@ -5,6 +5,7 @@ import pandas as pd
 import numpy as np
 import utils
 import media.icon_constants as icons
+from st_aggrid import AgGrid, AgGridTheme, GridOptionsBuilder
 
 def get_game_result_string(game):
         return f"{game['total_points_per_game']} points: ({game['team_1_player_1']}, {game['team_1_player_2']}) {game['points_team_1']} - {game['points_team_2']} ({game['team_2_player_1']}, {game['team_2_player_2']}) on {game['date']} at {game['venue']}"
@@ -110,28 +111,27 @@ if len(set(team_1 + team_2)) == 4:
             [head_2_head_stats["team_2_wins"], head_2_head_stats["avg_team2_pts"], head_2_head_stats["team_2_avg_win_margin"], head_2_head_stats["team_2_min_points_in_game"], head_2_head_stats["team_2_games_won_after_deuce"], head_2_head_stats["team_2_largest_win"]]
         ]
 
+        h2h_table_df = pd.DataFrame(comparision_table_list[1:], columns=comparision_table_list[0]).T.reset_index()
+        h2h_table_df.columns = ["metric", " - ".join(team_1), " - ".join(team_2)]
+
+        builder = GridOptionsBuilder.from_dataframe(h2h_table_df)
+        builder.configure_default_column(width=250)
+        builder.configure_columns(
+             [" - ".join(team_1), " - ".join(team_2)],
+             wrapText=True, 
+             autoHeight=True,
+             width=350
+        )
+        grid_options = builder.build()
+
         st.markdown(f"<hr><h5>Stat Table: </h5>", unsafe_allow_html=True)
 
-        table = go.Table(
-            header=dict(
-                values=["", " & ".join(team_1), " & ".join(team_2)], 
-                align="left", 
-                height=40, 
-                font=dict(color="white", size=16),
-                fill_color="lightslategrey"
-            ),
-            cells=dict(
-                values=comparision_table_list,
-                align="left",
-                height=60,
-                font=dict(size=14),
-                fill_color="#eceff1"
-            )
+        AgGrid(
+             h2h_table_df,
+             gridOptions = grid_options,
+             custom_css=utils.AGGRID_TABLE_STYLES,
+             theme=AgGridTheme.MATERIAL,
+             height=600
         )
-        fig = go.Figure(table)
-        fig.update_layout(height=500, margin=dict(t=0), width=800)
-
-        st.plotly_chart(fig)
-
 else:
     st.warning("Please ensure that the player names given as team players are distinct")

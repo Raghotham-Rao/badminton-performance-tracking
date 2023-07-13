@@ -6,6 +6,15 @@ import os
 from fetch_sheets_data import Gsheet
 import json
 import plotly.graph_objects as go
+from st_aggrid import JsCode
+
+
+AGGRID_TABLE_STYLES = {
+    ".ag-header-container": {"background-color": "#37474f"},
+    ".ag-body-vertical-scroll": {"display": "none"},
+    ".ag-header-cell-text": {"font-size": "14px", "color": "white", "font-weight": "lighter"},
+    ".ag-root": {"font-family": "Monospace"}
+}
 
 
 def get_player_stats(player, df: pd.DataFrame):
@@ -112,3 +121,16 @@ def create_go_table_figure(df):
     fig = go.Figure(go_table)
     fig.update_layout(margin=dict(t=0, b=0))
     return fig
+
+def get_js_code_for_row_color(field, value):
+    js_code = """
+    function(params) {
+        if (params.data.%s === '%s') {
+            return {
+                'color': 'black',
+                'backgroundColor': '#9ccc65',
+                'font-weight': 'bold'
+            }
+        }
+    };"""%(field, value)
+    return JsCode(js_code)

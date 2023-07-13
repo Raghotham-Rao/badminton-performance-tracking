@@ -6,6 +6,7 @@ import numpy as np
 import utils
 import media.icon_constants as icons
 from datetime import datetime
+from st_aggrid import AgGrid, GridOptionsBuilder, AgGridTheme, JsCode
 
 def text_color(amount):
     if amount < 300:
@@ -15,10 +16,8 @@ def text_color(amount):
     else:
         return "tomato"
 
-def get_players_on_date(df):
+def get_players_on_date(df: pd.DataFrame):
     players_on_date = df[['date', 'team_1_player_1', 'team_1_player_2', 'team_2_player_1', 'team_2_player_2']].copy()
-
-    # players_on_date['date'] = players_on_date['date'].apply(lambda x: f'{datetime.strptime(x, "%m/%d/%Y").date()}')
 
     players_on_date = players_on_date.groupby("date").agg({
         'team_1_player_1': 'unique',
@@ -36,7 +35,7 @@ def get_players_on_date(df):
 
     return players_on_date
 
-def get_balances(player_share_df, settlements_df, shuttle_expenses):
+def get_balances(player_share_df: pd.DataFrame, settlements_df: pd.DataFrame, shuttle_expenses: pd.DataFrame):
     balances = player_share_df.groupby(['players', 'paid_by'][::-1]).agg({
         'date': 'count',
         'share': 'sum'
@@ -128,10 +127,33 @@ if expenses_tracked and expenses_df.empty:
     st.subheader("No Expenses Tracked Yet")
 else:
     st.markdown(f"<hr><h5>{icons.CALENDAR}&nbsp;Daily Expenses</h5>", unsafe_allow_html=True)
-    expenses_fig = utils.create_go_table_figure(expenses_df.sort_values("date", ascending=False))
-    expenses_fig.update_traces(cells_fill_color=[np.where(expenses_df['amount'] == expenses_df['amount'].max(), '#b5de2b', '#eceff1')])
-    expenses_fig.update_layout(margin=dict(t=0, b=0), width=350, height=225)
-    st.plotly_chart(expenses_fig)
+    costliest_day = expenses_df.iloc[expenses_df['amount'].idxmax(), 0]
+    expenses_df['paid_by'] = expenses_df['paid_by'].str.capitalize()
+
+    builder = GridOptionsBuilder.from_dataframe(expenses_df)
+
+    grid_options = builder.build()
+    grid_options['getRowStyle'] = utils.get_js_code_for_row_color('date', costliest_day)
+
+    overall_expenses_cols = st.columns([4, 3])
+
+    with overall_expenses_cols[0]:
+        expenses_table = AgGrid(
+            expenses_df,
+            grid_options,
+            height=400,
+            theme=AgGridTheme.MATERIAL,
+            allow_unsafe_jscode=True,
+            custom_css=utils.AGGRID_TABLE_STYLES
+        )
+
+    with overall_expenses_cols[1]:
+        st.markdown(f'''
+            <div style="font-family: Monospace; margin-top: 10%; text-align: center">
+                <p style="font-size: 14px; font-weight: bolder; text-align: center">Total Expenses till date</p>
+                <p style="font-size: 48px">&#8377;{expenses_df['amount'].sum()}</p>
+            </div>
+        ''', unsafe_allow_html=True)
 
     player_share_df = pd.merge(players_on_date_df.explode('players'), expenses_df, how="inner", on="date")
     player_share_df['share'] = player_share_df['amount'] / player_share_df['number_of_players']
@@ -146,8 +168,53 @@ else:
 
 
     st.markdown(f"<hr><h5>{icons.CALENDAR}&nbsp;Day-wise Players Attended</h5>", unsafe_allow_html=True)
+    
+    additional_styles = {
+        "border": "1px solid lightgray",
+        "padding": "5px",
+        "border-radius": "30px",
+        "font-family": "monospace",
+        "text-align": "center"
+    }
 
-    st.dataframe(pd.merge(players_on_date_df, expenses_df, how="inner", on="date").set_index('date'))
+    merged_df = pd.merge(players_on_date_df, expenses_df, how="inner", on="date")
+
+    # merged_df['players'] = "<span>" + merged_df['players'].str.join("</span> <span>") + "</span>"
+
+    builder = GridOptionsBuilder.from_dataframe(merged_df)
+
+    builder.configure_columns(merged_df.columns, width=140)
+
+    builder.configure_column(
+        "players", 
+        width=500,
+        cellRenderer=JsCode("""
+        class UrlCellRenderer {
+            init(params) {
+                this.eGui = document.createElement('div'); 
+                this.eGui.innerHTML = '<span class="tablets">' + params.value.join('</span> <span class="tablets">') + '</span>';
+            }
+            getGui() {
+                return this.eGui;
+            }
+        }
+    """)
+    )
+
+    grid_options = builder.build()
+
+    AgGrid(
+        # pd.merge(players_on_date_df, expenses_df, how="inner", on="date"),
+        merged_df,
+        grid_options,
+        theme=AgGridTheme.MATERIAL,
+        custom_css={
+            **utils.AGGRID_TABLE_STYLES, 
+            ".tablets": additional_styles
+        },
+        allow_unsafe_jscode=True,
+        height=400
+    )
 
 
     st.markdown(f"<hr><h5>{icons.STATS_ICON}&nbsp;Cost Analysis</h5>", unsafe_allow_html=True)
