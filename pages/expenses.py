@@ -46,6 +46,8 @@ def get_balances(player_share_df: pd.DataFrame, settlements_df: pd.DataFrame, sh
 
     balances = pd.concat([balances, transformed_shuttle_expenses]).groupby(["paid_by", "players"]).agg({"share": "sum", "date": "min"}).reset_index()
 
+    st.dataframe(balances)
+
     balances = balances[balances['paid_by'] != balances['players']]
 
     balances = pd.merge(
@@ -148,15 +150,18 @@ else:
         )
 
     with overall_expenses_cols[1]:
+        total_badminton_expenses = expenses_df['amount'].sum() + shuttle_expenses.drop_duplicates(subset=['expense_id'])['amount'].sum()
         st.markdown(f'''
             <div style="font-family: Monospace; margin-top: 10%; text-align: center">
                 <p style="font-size: 14px; font-weight: bolder; text-align: center">Total Expenses till date</p>
-                <p style="font-size: 48px">&#8377;{expenses_df['amount'].sum()}</p>
+                <p style="font-size: 48px">&#8377;{total_badminton_expenses}</p>
             </div>
         ''', unsafe_allow_html=True)
 
     player_share_df = pd.merge(players_on_date_df.explode('players'), expenses_df, how="inner", on="date")
     player_share_df['share'] = player_share_df['amount'] / player_share_df['number_of_players']
+
+    st.dataframe(player_share_df)
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(f"<h5>{icons.CALCULATOR}&nbsp;Balances</h5>", unsafe_allow_html=True)
