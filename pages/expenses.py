@@ -130,7 +130,7 @@ if expenses_tracked and expenses_df.empty:
 else:
     st.markdown(f"<hr><h5>{icons.CALENDAR}&nbsp;Daily Expenses</h5>", unsafe_allow_html=True)
     costliest_day = expenses_df.iloc[expenses_df['amount'].idxmax(), 0]
-    expenses_df['paid_by'] = expenses_df['paid_by'].str.capitalize()
+    expenses_df['paid_by'] = expenses_df['paid_by']
 
     builder = GridOptionsBuilder.from_dataframe(expenses_df)
 
