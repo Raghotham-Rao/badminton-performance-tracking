@@ -46,8 +46,6 @@ def get_balances(player_share_df: pd.DataFrame, settlements_df: pd.DataFrame, sh
 
     balances = pd.concat([balances, transformed_shuttle_expenses]).groupby(["paid_by", "players"]).agg({"share": "sum", "date": "min"}).reset_index()
 
-    st.dataframe(balances)
-
     balances = balances[balances['paid_by'] != balances['players']]
 
     balances = pd.merge(
@@ -160,8 +158,6 @@ else:
 
     player_share_df = pd.merge(players_on_date_df.explode('players'), expenses_df, how="inner", on="date")
     player_share_df['share'] = player_share_df['amount'] / player_share_df['number_of_players']
-
-    st.dataframe(player_share_df)
 
     st.markdown("<hr>", unsafe_allow_html=True)
     st.markdown(f"<h5>{icons.CALCULATOR}&nbsp;Balances</h5>", unsafe_allow_html=True)
