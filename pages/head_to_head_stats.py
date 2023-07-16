@@ -89,7 +89,7 @@ if len(set(team_1 + team_2)) == 4:
                 title="Avg PPG",
                 delta={"reference": overall_avg_ppg}
             )
-        ).update_traces(gauge_bar_color="#8bc34a").update_layout(width=300, margin=dict(l=120, b=50))
+        ).update_traces(gauge_bar_color="#9ccc65").update_layout(width=300, margin=dict(l=120, b=50))
 
         summary_cols[1].plotly_chart(ppg_meter)
 
