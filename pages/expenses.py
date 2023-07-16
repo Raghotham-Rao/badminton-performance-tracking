@@ -235,12 +235,13 @@ else:
             values="amount",
             names='venue',
             template="plotly_white",
-            color_discrete_sequence=px.colors.sequential.OrRd_r[-venue_wise_expenditure.shape[0]:],
+            color_discrete_sequence=px.colors.sequential.Aggrnyl[-venue_wise_expenditure.shape[0]:],
             title="Venue wise cost",
             hole=0.3,
-            width=350,
+            width=350
         )
         venue_costs_pie.update_layout(showlegend=False, margin=dict(l=40))
+        venue_costs_pie.update_traces(pull=0.05)
         st.plotly_chart(venue_costs_pie)
 
     with cost_analysis_cols[1]:
