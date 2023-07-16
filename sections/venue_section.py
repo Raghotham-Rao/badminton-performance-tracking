@@ -34,13 +34,14 @@ def display_venue_stats(df: pd.DataFrame):
         values="total_games",
         names="venue",
         color_discrete_sequence=px.colors.sequential.Viridis_r,
-        hole=0.4,
+        hole=0.3,
         title="Venue Most Visited",
         width=350
     )
     venue_pie_fig.update_traces(
         textposition='inside',
-        showlegend=False
+        showlegend=False,
+        pull=0.05
     )
     venue_pie_fig.update_layout(margin=dict(l=100), title=dict(xanchor="center"))
 

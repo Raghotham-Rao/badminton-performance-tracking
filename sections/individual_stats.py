@@ -39,7 +39,7 @@ def display_player_win_loss_stats(player_matches: pd.DataFrame):
         AgGrid(
             player_win_loss_df.T.reset_index(),
             gridOptions=grid_options,
-            theme=AgGridTheme.MATERIAL,
+            theme=AgGridTheme.BALHAM,
             custom_css=utils.AGGRID_TABLE_STYLES,
             columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW,
             allow_unsafe_jscode=True,
@@ -84,7 +84,7 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
         AgGrid(
             player_partner_stats,
             gridOptions=grid_options,
-            theme=AgGridTheme.MATERIAL,
+            theme=AgGridTheme.BALHAM,
             custom_css=utils.AGGRID_TABLE_STYLES,
             columns_auto_size_mode=ColumnsAutoSizeMode.FIT_CONTENTS,
             allow_unsafe_jscode=True
@@ -159,7 +159,7 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
         AgGrid(
             daily_performance_res_ignored,
             gridOptions=grid_options,
-            theme=AgGridTheme.MATERIAL,
+            theme=AgGridTheme.BALHAM,
             custom_css=utils.AGGRID_TABLE_STYLES,
             columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW,
             allow_unsafe_jscode=True,
