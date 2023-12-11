@@ -5,6 +5,8 @@ import numpy as np
 import plotly.graph_objects as go
 import utils
 from st_aggrid import AgGrid, GridOptionsBuilder, AgGridTheme, ColumnsAutoSizeMode
+from datetime import datetime, timedelta
+import json
 
 
 def display_player_win_loss_stats(player_matches: pd.DataFrame):
@@ -117,6 +119,50 @@ def display_player_partner_stats(player_matches: pd.DataFrame, player):
         partner_bar_chart
     )
 
+def display_player_daily_stats_heat_map(df):
+    current_year_jan_1 = datetime(datetime.now().year, 1, 1)
+
+    x = list(range(1, 53))
+    y = ['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun']
+
+    first_day_ind = y.index(current_year_jan_1.strftime("%a"))
+
+    y = y[first_day_ind:] + y[:first_day_ind]
+
+    df['date'] = pd.to_datetime(df['date'])
+    df['week'] = df['date'].dt.isocalendar().week
+    df['day'] = df['date'].dt.day_of_week
+    df['year'] = df['date'].dt.year
+
+    df = df[df['date'] >= str(current_year_jan_1.date())]
+
+    nz = [[0 for i in range(52)] for j in range(7)]
+    hover_text = np.array([list(range(i, i + 7)) for i in range(0, 364, 7)]).T.tolist()
+    hover_text = [[f'0 games played on {current_year_jan_1.date() + timedelta(days=i)}' for i in j] for j in hover_text]
+
+    for i in json.loads(df.to_json(orient="records")):
+        nz[(i["day"] + (7 - first_day_ind)) % 7][i["week"] - 1] = i["total_games"]
+        hover_text[(i["day"] + (7 - first_day_ind)) % 7][i["week"] - 1] = f'{i["total_games"]} games played on {datetime.fromtimestamp(i["date"] / 1000).strftime("%a")}, {datetime.fromtimestamp(i["date"] / 1000).date()}'
+
+    fig = go.Figure(data=go.Heatmap(
+        z = nz[::-1],
+        x = x,
+        y = y[::-1],
+        xgap=4,
+        ygap=4,
+        hovertext=hover_text[::-1],
+        hovertemplate="%{hovertext}",
+        colorscale=px.colors.sequential.Greens,
+        showscale=False
+    ))
+
+    fig.update_layout(
+        width=750, 
+        height=150, 
+        margin=dict(b=0, t=0, r=0)
+    )
+    st.plotly_chart(fig)
+
 def display_player_daily_stats(player_matches: pd.DataFrame, player):
     daily_stat_cols = st.columns([4, 2])
     daily_performance = player_matches.groupby(["date", "result"]).agg(**{
@@ -138,7 +184,7 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
         height=400
     )
 
-    daily_stat_cols[0].markdown('<h6 style="margin-top: 40px">Daily Stats:</h6>', unsafe_allow_html=True)
+    daily_stat_cols[0].markdown('<h6 style="margin-top: 20px">Daily Trend:</h6>', unsafe_allow_html=True)
 
     daily_performance_res_ignored = player_matches.groupby(["date"]).agg(**{
         "total_games": pd.NamedAgg("result", "count"), 
@@ -153,23 +199,13 @@ def display_player_daily_stats(player_matches: pd.DataFrame, player):
     daily_performance_res_ignored["average_ppg"] = round(daily_performance_res_ignored["average_ppg"], 2)
 
     with daily_stat_cols[0]:
-        builder = GridOptionsBuilder.from_dataframe(daily_performance_res_ignored)
-        grid_options = builder.build()
-        grid_options['getRowStyle'] = utils.get_js_code_for_row_color('date', best_day)
+        display_player_daily_stats_heat_map(daily_performance.reset_index())
 
-        AgGrid(
-            daily_performance_res_ignored,
-            gridOptions=grid_options,
-            theme=AgGridTheme.MATERIAL,
-            custom_css=utils.AGGRID_TABLE_STYLES,
-            columns_auto_size_mode=ColumnsAutoSizeMode.FIT_ALL_COLUMNS_TO_VIEW,
-            allow_unsafe_jscode=True,
-            height=400
-        )
+    daily_performance_res_ignored["win_pct_change"] = np.cumsum(daily_performance_res_ignored["win_pct"]) / range(1, daily_performance_res_ignored.shape[0] + 1)
 
     daily_win_pct = go.Scatter(
         x=daily_performance_res_ignored["date"],
-        y=daily_performance_res_ignored["win_pct"],
+        y=daily_performance_res_ignored["win_pct_change"],
         line_color="#9ccc65",
         fill="tozeroy"
     )
